@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Bouquet",
+    "slug": "bouquet",
+    "scheme": "bouquet",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "app.bouquet.host",
+      "supportsTablet": true,
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Choose photos from your library to add to your event gallery.",
+        "NSCameraUsageDescription": "Take photos to add to your event gallery."
+      }
+    },
+    "android": {
+      "package": "app.bouquet.host",
+      "permissions": ["READ_MEDIA_IMAGES", "READ_MEDIA_VIDEO", "POST_NOTIFICATIONS"]
+    },
+    "plugins": ["expo-router", "expo-apple-authentication", "expo-image-picker", "expo-notifications"]
+  }
+}

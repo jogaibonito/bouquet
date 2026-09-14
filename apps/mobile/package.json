@@ -1,0 +1,22 @@
+{
+  "name": "@bouquet/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "build:preview": "eas build --profile preview"
+  },
+  "dependencies": {
+    "@bouquet/shared": "workspace:*",
+    "expo": "~52.0.0",
+    "expo-apple-authentication": "~7.1.0",
+    "expo-image-picker": "~16.0.0",
+    "expo-notifications": "~0.29.0",
+    "expo-router": "~4.0.0",
+    "react": "19.0.0",
+    "react-native": "0.76.5"
+  }
+}

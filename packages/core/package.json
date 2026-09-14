@@ -1,0 +1,17 @@
+{
+  "name": "@bouquet/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@bouquet/db": "workspace:*",
+    "@bouquet/shared": "workspace:*",
+    "drizzle-orm": "^0.38.3",
+    "ioredis": "^5.4.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": { "vitest": "^2.1.8" }
+}

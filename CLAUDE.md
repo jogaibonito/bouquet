@@ -15,19 +15,26 @@ Bouquet. Guests scan a QR code at an event, land on a mobile web page, upload fu
 ## Layout
 
 ```
-apps/web      Next.js — guest upload, screen view, marketing, API handlers
-apps/mobile   Expo — host app, iOS + Android
-packages/db   Drizzle schema + migrations (Postgres). Schema is the source of truth.
+apps/web         Next.js — guest upload, screen view, thin API route handlers
+apps/mobile      Expo — host app, iOS + Android
+packages/core    Server logic: Bloom limiter, storage providers, upload service,
+                 resumable client uploader. Framework-agnostic and fully tested.
+                 Nothing here may import Next.js or Expo.
+packages/db      Drizzle schema + migrations (Postgres). Schema is the source of truth.
 packages/shared  Zod schemas, types, constants. Imported by web and mobile.
 packages/config  tsconfig, eslint, prettier
 ```
 
-pnpm workspaces + Turborepo. Never import across `apps/`; shared code goes in `packages/shared`.
+pnpm workspaces + Turborepo. Never import across `apps/`; shared code goes in `packages/shared` (types) or `packages/core` (logic).
 
 ## Commands
 
 ```bash
+pnpm services:up   # local Postgres + Redis (or: docker compose up -d)
+pnpm db:migrate
+pnpm db:seed       # demo event at /e/sam-and-alex, Bloom 3/hour
 pnpm dev / dev:web / dev:mobile
+pnpm smoke         # end-to-end guest journey against real services
 pnpm db:generate | db:migrate | db:studio
 pnpm test          # Vitest
 pnpm test:e2e      # Playwright, guest upload flow
@@ -91,6 +98,18 @@ Optional per-event limit: N uploads per rolling window.
 ## Environment
 
 Copy `.env.example`. Local: `DATABASE_URL`, `REDIS_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `R2_*`, `NEXT_PUBLIC_APP_URL`. Never commit secrets; production lives in Vercel and EAS.
+
+## Where the complexity lives
+
+Read these before touching upload or quota behaviour:
+
+- `packages/core/src/bloom/lua.ts` — atomic reserve/release scripts
+- `packages/core/src/bloom/limiter.ts` — window, grace, bypass
+- `packages/core/src/uploads/service.ts` — reserve-on-mint, release-on-failure, quota failover
+- `packages/core/src/client/uploader.ts` — chunking, resume, backoff
+
+Each has a colocated `.test.ts`; `scripts/smoke.mts` exercises all four together.
+Route handlers in `apps/web/app/api` are deliberately thin — logic belongs in core.
 
 ## Ask, don't guess
 
