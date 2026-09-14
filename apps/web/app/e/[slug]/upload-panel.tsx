@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { uploadFile, type UploadTarget } from '@bouquet/core';
+import { uploadFile, type UploadTarget } from '@bouquet/core/client';
 import type { MintSessionResponse } from '@bouquet/shared';
 
 interface Props {
@@ -12,6 +12,26 @@ interface Props {
 interface Row { name: string; sent: number; total: number; done: boolean; failed: boolean }
 
 const kindOf = (f: File) => (f.type.startsWith('video/') ? 'video' as const : 'photo' as const);
+
+/**
+ * Thumbnails are generated on the device, never server-side — invariant 1 means
+ * we never see the original bytes, so the client is the only place this can happen.
+ */
+async function makeThumbnail(file: File, maxEdge = 400): Promise<Blob | null> {
+  if (!file.type.startsWith('image/')) return null;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    return await new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.8));
+  } catch {
+    return null;
+  }
+}
 
 export default function UploadPanel({ slug, bloom }: Props) {
   const input = useRef<HTMLInputElement>(null);
@@ -77,12 +97,17 @@ export default function UploadPanel({ slug, bloom }: Props) {
           const out = await uploadFile(f, target, {
             onProgress: (sent) => setRows((rs) => rs.map((r) => r.name === f.name ? { ...r, sent } : r)),
           });
+          const thumbKey = `th/${target.uploadId}.jpg`;
+          const thumb = await makeThumbnail(f);
+          if (thumb) {
+            await fetch(`/api/assets/${thumbKey}`, { method: 'PUT', body: thumb }).catch(() => {});
+          }
           await fetch('/api/uploads/complete', {
             method: 'POST', headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
               uploadId: target.uploadId, providerFileId: out.providerFileId,
               width: null, height: null, durationMs: null,
-              thumbKey: `th/${target.uploadId}.jpg`, previewKey: null,
+              thumbKey, previewKey: null,
             }),
           });
           setRows((rs) => rs.map((r) => r.name === f.name ? { ...r, done: true } : r));

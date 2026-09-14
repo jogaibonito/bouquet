@@ -11,7 +11,15 @@ export class FakeStorageProvider implements StorageProvider {
   readonly files = new Map<string, { folderId: string; filename: string; bytes: number }>();
   private used = 0;
 
-  constructor(private limitBytes: number | null = 15 * 1024 ** 3) {}
+  /**
+   * `baseUrl` makes the minted session URL reachable from a real browser during
+   * local development. Defaults to an unroutable host so server-side tests can
+   * never accidentally perform network I/O.
+   */
+  constructor(
+    private limitBytes: number | null = 15 * 1024 ** 3,
+    private baseUrl = 'https://fake.upload.local/session',
+  ) {}
 
   async createResumableSession(input: {
     folderId: string; filename: string; mimeType: string; bytes: number;
@@ -20,7 +28,7 @@ export class FakeStorageProvider implements StorageProvider {
     this.files.set(id, { folderId: input.folderId, filename: input.filename, bytes: input.bytes });
     this.used += input.bytes;
     return {
-      uploadUrl: `https://fake.upload.local/session/${id}`,
+      uploadUrl: `${this.baseUrl}/${id}`,
       providerFileId: id,
       expiresAt: new Date(Date.now() + UPLOAD_SESSION_TTL_SECONDS * 1000),
     };

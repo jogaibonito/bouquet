@@ -25,7 +25,10 @@ export function server() {
   const primary: StorageProvider =
     process.env.STORAGE_PROVIDER === 'google_drive'
       ? new GoogleDriveProvider({ getAccessToken: async () => requireEnv('GOOGLE_ACCESS_TOKEN') })
-      : new FakeStorageProvider();
+      : new FakeStorageProvider(
+          15 * 1024 ** 3,
+          `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/dev/upload`,
+        );
 
   const service = new UploadService({ db: db.db, bloom, primary });
   cached = { redis, db, service };

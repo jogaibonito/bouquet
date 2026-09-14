@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 
 /** Shared flat config. CLAUDE.md conventions are enforced here, not by review. */
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/*.tsbuildinfo'] },
+  { ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/*.tsbuildinfo', '**/next-env.d.ts'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

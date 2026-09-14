@@ -21,9 +21,25 @@ pnpm db:seed                  # demo event, Bloom set to 3/hour with 5 grace
 pnpm dev                      # http://localhost:3000/e/sam-and-alex
 ```
 
-`STORAGE_PROVIDER=fake` (the default) runs the entire upload path against an
-in-memory Drive double, so the app is fully usable without Google credentials.
-Set `STORAGE_PROVIDER=google_drive` once OAuth is configured.
+`STORAGE_PROVIDER=fake` (the default) runs the entire upload path with no Google
+credentials. Minted session URLs point at `/api/dev/upload/[id]`, a local endpoint
+that speaks the same resumable protocol as Drive (308 + Range, 200 + file id on the
+final chunk). Uploaded bytes land in `.data/uploads`, thumbnails in `.data/assets`.
+Set `STORAGE_PROVIDER=google_drive` once OAuth is configured; the dev endpoint
+returns 404 in any other mode.
+
+### Testing from a phone
+
+The dev server binds localhost only. To scan a QR code from a real handset:
+
+```bash
+pnpm dev -- -H 0.0.0.0            # then use http://<your-lan-ip>:3000
+# or, for HTTPS (required by some camera APIs):
+npx ngrok http 3000
+```
+
+Set `NEXT_PUBLIC_APP_URL` to whichever origin you use — minted session URLs are
+built from it, so a mismatch makes uploads fail from the phone but work on the PC.
 
 ## Verifying
 

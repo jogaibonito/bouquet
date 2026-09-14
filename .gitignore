@@ -7,3 +7,5 @@ dist/
 .env.local
 .turbo/
 coverage/
+next-env.d.ts
+.data/
